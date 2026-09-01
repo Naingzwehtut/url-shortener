@@ -1,0 +1,267 @@
+openapi: 3.0.3
+info:
+  title: URL Shortener API
+  description: A REST API for creating, managing, and tracking shortened URLs.
+  version: "1.0.0"
+servers:
+  - url: http://localhost:8000
+paths:
+  /api/shorten:
+    post:
+      summary: Create a short URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: https://www.example.com/some/very/long/url
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Url"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RateLimitError"
+
+  /api/shorten/{shortCode}:
+    get:
+      summary: Retrieve a shortened URL's details
+      parameters:
+        - $ref: "#/components/parameters/ShortCode"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Url"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    put:
+      summary: Update a shortened URL's target
+      parameters:
+        - $ref: "#/components/parameters/ShortCode"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: https://www.example.com/updated-url
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Url"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+    delete:
+      summary: Delete a shortened URL
+      parameters:
+        - $ref: "#/components/parameters/ShortCode"
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/shorten/{shortCode}/stats:
+    get:
+      summary: Get access statistics for a shortened URL
+      parameters:
+        - $ref: "#/components/parameters/ShortCode"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlStats"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /api/shorten/{shortCode}/analytics:
+    get:
+      summary: Get detailed click analytics for a shortened URL
+      parameters:
+        - $ref: "#/components/parameters/ShortCode"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UrlAnalytics"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /{shortCode}:
+    get:
+      summary: Redirect to the original URL
+      description: Increments the access counter and issues a 302 redirect to the original URL.
+      parameters:
+        - $ref: "#/components/parameters/ShortCode"
+      responses:
+        "302":
+          description: Found — redirects to the original URL
+          headers:
+            Location:
+              schema:
+                type: string
+                format: uri
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  parameters:
+    ShortCode:
+      name: shortCode
+      in: path
+      required: true
+      schema:
+        type: string
+        example: aB92xK
+
+  schemas:
+    Url:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        url:
+          type: string
+          format: uri
+        shortCode:
+          type: string
+          example: aB92xK
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    UrlStats:
+      allOf:
+        - $ref: "#/components/schemas/Url"
+        - type: object
+          properties:
+            accessCount:
+              type: integer
+              example: 42
+
+    UrlAnalytics:
+      type: object
+      properties:
+        id:
+          type: integer
+        url:
+          type: string
+          format: uri
+        shortCode:
+          type: string
+        totalClicks:
+          type: integer
+        clicksToday:
+          type: integer
+        clicksThisWeek:
+          type: integer
+        lastAccessedAt:
+          type: string
+          format: date-time
+          nullable: true
+        clicksByDate:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              count:
+                type: integer
+
+    RateLimitError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Too many requests. Please slow down and try again shortly.
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Resource not found.
+
+    ValidationError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: The given data was invalid.
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            url: ["The url field must be a valid URL."]

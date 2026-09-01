@@ -1,0 +1,72 @@
+{
+  "info": {
+    "name": "URL Shortener API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Collection for the URL Shortener REST API. Set the base_url variable to your running instance (default http://localhost:8000)."
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "short_code", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create Short URL",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"url\": \"https://www.example.com/some/very/long/url\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/api/shorten", "host": ["{{base_url}}"], "path": ["api", "shorten"] }
+      }
+    },
+    {
+      "name": "Retrieve Short URL",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/api/shorten/{{short_code}}", "host": ["{{base_url}}"], "path": ["api", "shorten", "{{short_code}}"] }
+      }
+    },
+    {
+      "name": "Update Short URL",
+      "request": {
+        "method": "PUT",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"url\": \"https://www.example.com/updated-url\"\n}"
+        },
+        "url": { "raw": "{{base_url}}/api/shorten/{{short_code}}", "host": ["{{base_url}}"], "path": ["api", "shorten", "{{short_code}}"] }
+      }
+    },
+    {
+      "name": "Delete Short URL",
+      "request": {
+        "method": "DELETE",
+        "url": { "raw": "{{base_url}}/api/shorten/{{short_code}}", "host": ["{{base_url}}"], "path": ["api", "shorten", "{{short_code}}"] }
+      }
+    },
+    {
+      "name": "Get Statistics",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/api/shorten/{{short_code}}/stats", "host": ["{{base_url}}"], "path": ["api", "shorten", "{{short_code}}", "stats"] }
+      }
+    },
+    {
+      "name": "Get Analytics",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/api/shorten/{{short_code}}/analytics", "host": ["{{base_url}}"], "path": ["api", "shorten", "{{short_code}}", "analytics"] }
+      }
+    },
+    {
+      "name": "Visit Short URL (Redirect)",
+      "request": {
+        "method": "GET",
+        "url": { "raw": "{{base_url}}/{{short_code}}", "host": ["{{base_url}}"], "path": ["{{short_code}}"] }
+      }
+    }
+  ]
+}
