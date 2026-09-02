@@ -51,6 +51,12 @@ class UrlShortenerService
                 return Url::create([
                     'url' => $url,
                     'short_code' => $this->generateCode(),
+                    // Explicit, not relied on from the DB's DEFAULT 0:
+                    // Eloquent doesn't re-fetch DB-applied defaults into the
+                    // in-memory model after an insert, so leaving this out
+                    // would make $url->access_count null immediately after
+                    // create() despite the database row correctly being 0.
+                    'access_count' => 0,
                 ]);
             } catch (QueryException $e) {
                 if (! $this->isUniqueViolation($e)) {

@@ -6,6 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Url;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
 class CreateShortUrlTest extends TestCase
@@ -59,7 +60,7 @@ class CreateShortUrlTest extends TestCase
             ->assertJsonValidationErrors('url');
     }
 
-    /** @dataProvider invalidUrlProvider */
+    #[DataProvider('invalidUrlProvider')]
     public function test_it_rejects_invalid_urls(string $invalidUrl): void
     {
         $response = $this->postJson('/api/shorten', ['url' => $invalidUrl]);
